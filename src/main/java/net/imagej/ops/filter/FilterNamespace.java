@@ -6,13 +6,13 @@
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -136,7 +136,7 @@ public class FilterNamespace extends AbstractNamespace {
 
 	/**
 	 * Executes a bilateral filter on the given arguments.
-	 * 
+	 *
 	 * @param in
 	 * @param out
 	 * @param sigmaR
@@ -757,7 +757,7 @@ public class FilterNamespace extends AbstractNamespace {
 
 	/**
 	 * Executes the "Frangi Vesselness" filter operation on the given arguments.
-	 * 
+	 *
 	 * @param in - input image
 	 * @param out - output image
 	 * @param spacing - n-dimensional array indicating the physical distance
@@ -1245,6 +1245,19 @@ public class FilterNamespace extends AbstractNamespace {
 		return result;
 	}
 
+	// -- Sharpen
+
+	/** Executes the "sharpen" filter operation on the given arguments. */
+	@OpMethod(op = net.imagej.ops.filter.sharpen.DefaultSharpen.class)
+	public <T extends RealType<T>> RandomAccessibleInterval<T> sharpen(
+		final RandomAccessibleInterval<T> in)
+	{
+		@SuppressWarnings("unchecked")
+		final RandomAccessibleInterval<T> result =
+			(RandomAccessibleInterval<T>) ops().run(Ops.Filter.Sharpen.class, in);
+		return result;
+	}
+
 	/** Executes the "sigma" filter operation on the given arguments. */
 	@OpMethod(op = net.imagej.ops.filter.sigma.DefaultSigmaFilter.class)
 	public <T extends RealType<T>> IterableInterval<T> sigma(
@@ -1268,6 +1281,19 @@ public class FilterNamespace extends AbstractNamespace {
 		final IterableInterval<T> result = (IterableInterval<T>) ops().run(
 			Ops.Filter.Sigma.class, out, in, shape, outOfBoundsFactory, range,
 			minPixelFraction);
+		return result;
+	}
+
+	// -- Smooth
+
+	/** Executes the "sharpen" filter operation on the given arguments. */
+	@OpMethod(op = net.imagej.ops.filter.smooth.DefaultSmooth.class)
+	public <T extends RealType<T>> RandomAccessibleInterval<T> smooth(
+		final RandomAccessibleInterval<T> in)
+	{
+		@SuppressWarnings("unchecked")
+		final RandomAccessibleInterval<T> result =
+			(RandomAccessibleInterval<T>) ops().run(Ops.Filter.Smooth.class, in);
 		return result;
 	}
 
