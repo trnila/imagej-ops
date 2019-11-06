@@ -27,32 +27,33 @@
  * #L%
  */
 
-package net.imagej.ops.filter;
+package net.imagej.ops.filter.convolve;
 
-import net.imagej.ops.filter.fft.CreateOutputFFTMethods;
-import net.imagej.ops.special.computer.AbstractBinaryComputerOp;
-import net.imagej.ops.special.function.Functions;
-import net.imagej.ops.special.function.UnaryFunctionOp;
-import net.imglib2.Dimensions;
+import net.imagej.ops.Ops;
+import net.imagej.ops.special.computer.BinaryComputerOp;
+import net.imagej.ops.special.computer.Computers;
+import net.imagej.ops.special.function.AbstractBinaryFunctionOp;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.img.Img;
+import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ComplexType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.complex.ComplexFloatType;
 
+import org.scijava.Priority;
 import org.scijava.plugin.Parameter;
+import org.scijava.plugin.Plugin;
 
 /**
- * Abstract class for FFT based filter computers
+ * Function wrapper around {@link ConvolveFFTC} computer.
  * 
+ * @author Curtis Rueden
  * @author Brian Northan
- * @param <I>
- * @param <O> gene
- * @param <K>
- * @param <C>
  */
-public abstract class AbstractFFTFilterC<I extends RealType<I>, O extends RealType<O>, K extends RealType<K>, C extends ComplexType<C>>
+@Plugin(type = Ops.Filter.Convolve.class, priority = Priority.LOW)
+public class ConvolveFFTF<I extends RealType<I> & NativeType<I>, K extends RealType<K>, C extends ComplexType<C>>
 	extends
-	AbstractBinaryComputerOp<RandomAccessibleInterval<I>, RandomAccessibleInterval<K>, RandomAccessibleInterval<O>>
+	AbstractBinaryFunctionOp<RandomAccessibleInterval<I>, RandomAccessibleInterval<K>, RandomAccessibleInterval<I>>
+	implements Ops.Filter.Convolve
 {
 
 	/**
@@ -81,53 +82,27 @@ public abstract class AbstractFFTFilterC<I extends RealType<I>, O extends RealTy
 	@Parameter(required = false)
 	private boolean performKernelFFT = true;
 
+	private BinaryComputerOp<RandomAccessibleInterval<I>, RandomAccessibleInterval<K>, RandomAccessibleInterval<I>> convolveFFTC;
+
+	@Override
+	public void initialize() {
+		super.initialize();
+		System.out.println("ConvolveFFTF: in1 = " + in1() + ", in2 = " + in2() + ", fftInput = " + fftInput + ", fftKernel = " + fftKernel);
+		convolveFFTC = Computers.binary(ops(), Ops.Filter.Convolve.class, in1(),
+			in1(), in2(), fftInput, fftKernel, performInputFFT, performKernelFFT);
+//		convolveFFTC = (BinaryComputerOp) Computers.binary(ops(), Ops.Filter.Convolve.class, RandomAccessibleInterval.class,
+//			RandomAccessibleInterval.class, RandomAccessibleInterval.class, fftInput, fftKernel, performInputFFT, performKernelFFT);
+	}
+
 	/**
-	 * FFT type
+	 * Call the linear filter that is set up to perform convolution
 	 */
-	private ComplexType<C> fftType;
-
-	/**
-	 * Op used to create the complex FFTs
-	 */
-	private UnaryFunctionOp<Dimensions, RandomAccessibleInterval<C>> createOp;
-
-	protected RandomAccessibleInterval<C> getFFTInput() {
-		if (fftType == null) {
-			fftType = (ComplexType<C>) ops().create().nativeType(
-				ComplexFloatType.class);
-		}
-		return fftInput;
-	}
-
-	public void setFFTInput(RandomAccessibleInterval<C> fftInput) {
-		this.fftInput = fftInput;
-	}
-
-	protected RandomAccessibleInterval<C> getFFTKernel() {
-		return fftKernel;
-	}
-
-	public void setFFTKernel(RandomAccessibleInterval<C> fftKernel) {
-		this.fftKernel = fftKernel;
-	}
-
-	protected boolean getPerformInputFFT() {
-		return performInputFFT;
-	}
-
-	protected boolean getPerformKernelFFT() {
-		return performKernelFFT;
-	}
-
-	public UnaryFunctionOp<Dimensions, RandomAccessibleInterval<C>>
-		getCreateOp()
+	@Override
+	public RandomAccessibleInterval<I> calculate(final RandomAccessibleInterval<I> in,
+		final RandomAccessibleInterval<K> kernel)
 	{
-		if (createOp == null) {
-		createOp = (UnaryFunctionOp) Functions.unary(ops(),
-			CreateOutputFFTMethods.class, RandomAccessibleInterval.class,
-			Dimensions.class, fftType, true);
-		}
-		return createOp;
+		final Img<I> out = ops().create().img(in);
+		convolveFFTC.compute(in, kernel, out);
+		return out;
 	}
-
 }

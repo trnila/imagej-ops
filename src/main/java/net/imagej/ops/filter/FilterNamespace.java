@@ -140,7 +140,6 @@ public class FilterNamespace extends AbstractNamespace {
 	 * @param sigmaR
 	 * @param sigmaS
 	 * @param radius
-	 * @return
 	 */
 	@OpMethod(op = net.imagej.ops.filter.bilateral.DefaultBilateral.class)
 	public <I extends RealType<I>, O extends RealType<O>>
@@ -159,12 +158,14 @@ public class FilterNamespace extends AbstractNamespace {
 	// -- convolve --
 	
 	/** Executes the "correlate" operation on the given arguments. */
-	@OpMethod(op = net.imagej.ops.filter.convolve.ConvolveNaiveF.class)
+	@OpMethod(ops = {net.imagej.ops.filter.convolve.ConvolveFFTF.class, net.imagej.ops.filter.convolve.ConvolveNaiveF.class})
 	public <I extends RealType<I>, O extends RealType<O>, K extends RealType<K>, C extends ComplexType<C>>
 		RandomAccessibleInterval<O> convolve(
 			final RandomAccessibleInterval<I> in,
 			final RandomAccessibleInterval<K> kernel)
 	{
+		System.out.println("----------> in = " + in);
+		System.out.println("----------> kernel = " + kernel);
 		@SuppressWarnings("unchecked")
 		final RandomAccessibleInterval<O> result =
 			(RandomAccessibleInterval<O>) ops().run(Ops.Filter.Convolve.class,
@@ -172,8 +173,10 @@ public class FilterNamespace extends AbstractNamespace {
 		return result;
 	}
 	
-	/** Executes the "correlate" operation on the given arguments. */
-	@OpMethod(ops = {net.imagej.ops.filter.convolve.ConvolveFFTC.class, net.imagej.ops.filter.convolve.PadAndConvolveFFT.class})
+	/** Executes the "convolve" operation on the given arguments. */
+	@OpMethod(ops = { net.imagej.ops.filter.convolve.ConvolveFFTF.class,
+		net.imagej.ops.filter.convolve.ConvolveFFTC.class,
+		net.imagej.ops.filter.convolve.PadAndConvolveFFT.class })
 	public <I extends RealType<I>, O extends RealType<O>, K extends RealType<K>, C extends ComplexType<C>>
 		RandomAccessibleInterval<O> convolve(
 			final RandomAccessibleInterval<O> output,
@@ -304,7 +307,7 @@ public class FilterNamespace extends AbstractNamespace {
 	}
 
 	/** Executes the "convolve" operation on the given arguments. */
-	@OpMethod(op = net.imagej.ops.filter.convolve.ConvolveFFTC.class)
+	@OpMethod(ops = {net.imagej.ops.filter.convolve.ConvolveFFTF.class, net.imagej.ops.filter.convolve.ConvolveFFTC.class})
 	public <I extends RealType<I>, O extends RealType<O>, K extends RealType<K>, C extends ComplexType<C>>
 		RandomAccessibleInterval<O> convolve(
 			final RandomAccessibleInterval<O> output,
@@ -1410,4 +1413,47 @@ public class FilterNamespace extends AbstractNamespace {
 		return "filter";
 	}
 
+	// -- Deprecated methods --
+
+//	public <I extends RealType<I> & NativeType<I>, K extends RealType<K>, C extends ComplexType<C>>
+//		RandomAccessibleInterval<I> convolve(
+//			final RandomAccessibleInterval<I> raiExtendedInput,
+//			final RandomAccessibleInterval<K> raiExtendedKernel)
+//	{
+//		return convolve(create(raiExtendedInput), raiExtendedInput, raiExtendedKernel);
+//	}
+
+	@OpMethod(op = net.imagej.ops.filter.convolve.ConvolveFFTF.class)
+	public <I extends RealType<I> & NativeType<I>, K extends RealType<K>, C extends ComplexType<C>>
+		RandomAccessibleInterval<I> convolve(
+			final RandomAccessibleInterval<I> raiExtendedInput,
+			final RandomAccessibleInterval<K> raiExtendedKernel,
+			final RandomAccessibleInterval<C> fftInput,
+			final RandomAccessibleInterval<C> fftKernel,
+			final boolean performInputFFT)
+	{
+		@SuppressWarnings("unchecked")
+		final RandomAccessibleInterval<I> result =
+			(RandomAccessibleInterval<I>) ops().run(Ops.Filter.Convolve.class,
+				raiExtendedInput, raiExtendedKernel, fftInput, fftKernel,
+				performInputFFT);
+		return result;
+	}
+
+	@OpMethod(op = net.imagej.ops.filter.convolve.ConvolveFFTF.class)
+	public <I extends RealType<I> & NativeType<I>, K extends RealType<K>, C extends ComplexType<C>>
+		RandomAccessibleInterval<I> convolve(
+			final RandomAccessibleInterval<I> raiExtendedInput,
+			final RandomAccessibleInterval<K> raiExtendedKernel,
+			final RandomAccessibleInterval<C> fftInput,
+			final RandomAccessibleInterval<C> fftKernel,
+			final boolean performInputFFT, final boolean performKernelFFT)
+	{
+		@SuppressWarnings("unchecked")
+		final RandomAccessibleInterval<I> result =
+			(RandomAccessibleInterval<I>) ops().run(Ops.Filter.Convolve.class,
+				raiExtendedInput, raiExtendedKernel, fftInput, fftKernel,
+				performInputFFT, performKernelFFT);
+		return result;
+	}
 }
