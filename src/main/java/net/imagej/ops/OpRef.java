@@ -190,7 +190,9 @@ public class OpRef {
 		for (Object arg : args) {
 			if (first) first = false;
 			else sb.append(", ");
-			if (arg.getClass() == Class.class) {
+			if (arg == null) {
+				sb.append("null");
+			} else if (arg.getClass() == Class.class) {
 				// special typed null placeholder
 				sb.append(((Class<?>) arg).getSimpleName());
 			}
